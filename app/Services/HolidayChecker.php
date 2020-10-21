@@ -4,84 +4,84 @@ namespace App\Services;
 
 class HolidayChecker
 {
-    static $dates = array(
-        'New Year' => array('Weekday' => null, 'Week' => null, 'Month' => 1, 'Day' => 1),
-        'Christmas' => array('Weekday' => null, 'Week' => null, 'Month' => 1, 'Day' => 7),
-        'Labor Day' => array('Weekday' => null, 'Week' => null, 'Month' => 5, 'Day' => array(1, 2, 3, 4, 5, 6, 7)),
-        'Jr. Day' => array('Weekday' => 1, 'Week' => 3, 'Month' => 1, 'Day' => null),
-        'Some Day' => array('Weekday' => 1, 'Week' => 5, 'Month' => 3, 'Day' => null),
-        'Thanksgiving Day' => array('Weekday' => 4, 'Week' => 4, 'Month' => 11, 'Day' => null),
-    );
+    private static $dates = [
+        'New Year' => ['Weekday' => null, 'Week' => null, 'Month' => 1, 'Day' => 1],
+        'Christmas' => ['Weekday' => null, 'Week' => null, 'Month' => 1, 'Day' => 7],
+        'Labor Day' => ['Weekday' => null, 'Week' => null, 'Month' => 5, 'Day' => [1, 2, 3, 4, 5, 6, 7]],
+        'Jr. Day' => ['Weekday' => 1, 'Week' => 3, 'Month' => 1, 'Day' => null],
+        'Some Day' => ['Weekday' => 1, 'Week' => 5, 'Month' => 3, 'Day' => null],
+        'Thanksgiving Day' => ['Weekday' => 4, 'Week' => 4, 'Month' => 11, 'Day' => null],
+    ];
+
+    private static function getWeek($timestamp) {
+        $weekYear = date('W',$timestamp);
+        $year = date('Y',$timestamp);
+        $month = date('m',$timestamp);
+        $prevMonth = date('m',$timestamp) -1;
+        if($month != 1 ){
+            $lastDayPrev = $year."-".$prevMonth."-1";
+            $lastDayPrev = date('t',strtotime($lastDayPrev));
+            $weekYearLastMon = date('W',strtotime($year."-".$prevMonth."-".$lastDayPrev));
+            $weekYearFirstThis = date('W',strtotime($year."-".$month."-1"));
+            if($weekYearFirstThis == $weekYearLastMon){
+                $weekDiff = 0;
+            }
+            else {
+                $weekDiff = 1;
+            }
+            if($weekYear ==1 && $month == 12 ){
+                $weekYear = 53;
+            }
+            $week = $weekYear-$weekYearLastMon + 1 +$weekDiff;
+        }
+        else {
+            $weekYearFirstThis = date('W',strtotime($year."-01-1"));
+            if($weekYearFirstThis ==52 || $weekYearFirstThis ==53){
+                if($weekYear == 52 || $weekYear == 53){
+                    $week =1;
+                }
+                else {
+                    $week = $weekYear + 1;
+                }
+            }
+            else {
+                $week = $weekYear;
+            }
+        }
+        return $week;
+    }
 
     public static function check($valid)
     {
-        function getWeek($timestamp) {
-            $week_year = date('W',$timestamp);
-            $year = date('Y',$timestamp);
-            $month = date('m',$timestamp);
-            $prev_month = date('m',$timestamp) -1;
-            if($month != 1 ){
-                $last_day_prev = $year."-".$prev_month."-1";
-                $last_day_prev = date('t',strtotime($last_day_prev));
-                $week_year_last_mon = date('W',strtotime($year."-".$prev_month."-".$last_day_prev));
-                $week_year_first_this = date('W',strtotime($year."-".$month."-1"));
-                if($week_year_first_this == $week_year_last_mon){
-                    $week_diff = 0;
-                }
-                else {
-                    $week_diff = 1;
-                }
-                if($week_year ==1 && $month == 12 ){
-                    $week_year = 53;
-                }
-                $week = $week_year-$week_year_last_mon + 1 +$week_diff;
-            }
-            else {
-                $week_year_first_this = date('W',strtotime($year."-01-1"));
-                if($week_year_first_this ==52 || $week_year_first_this ==53){
-                    if($week_year == 52 || $week_year == 53){
-                        $week =1;
-                    }
-                    else {
-                        $week = $week_year + 1;
-                    }
-                }
-                else {
-                    $week = $week_year;
-                }
-            }
-            return $week;
-        }
-
-        $input_str = implode($valid);
-        $input_timestamp = strtotime($input_str);
-        $input_day = date('j', $input_timestamp);
-        $input_month = date('n', $input_timestamp);
-        $input_weekday = date('w', $input_timestamp);
-        $input_week = getWeek($input_timestamp);
-        $input_year = date('Y', $input_timestamp);
+        $inputStr = implode($valid);
+        $inputTimestamp = strtotime($inputStr);
+        $inputDay = date('j', $inputTimestamp);
+        $inputMonth = date('n', $inputTimestamp);
+        $inputWeekday = date('w', $inputTimestamp);
+        $inputWeek = self::getWeek($inputTimestamp);
+        $inputYear = date('Y', $inputTimestamp);
 
         foreach (self::$dates as $key => $value) {
 
             if((!is_array($value['Day'])) &&
-                (($value['Day'] == $input_day) OR (($input_weekday == 1) &&
+                (($value['Day'] == $inputDay) || (($inputWeekday == 1) &&
                         ((date('w', (strtotime($value['Day'] . '.' .
-                                $value['Month'] . '.' . $input_year)))) == 0 OR 6) &&
-                        ($input_day - $value['Day'] <= 2))) &&
-                ($value['Month'] == $input_month))
+                                $value['Month'] . '.' . $inputYear)))) == 0 || 6) &&
+                        ($inputDay - $value['Day'] <= 2))) &&
+                ($value['Month'] == $inputMonth))
             {
-                return ("It's " . $key . " on that date!");
+                return "It's $key on that date!";
             } elseif ((is_array($value['Day'])) &&
-                (array_search($input_day, $value['Day']) !== false) &&
-                ($value['Month'] == $input_month))
+                (array_search($inputDay, $value['Day']) !== false) &&
+                ($value['Month'] == $inputMonth))
             {
-                return ("It's " . $key . " on that date!");
-            } elseif (((($value['Weekday'] == $input_weekday) && ($value['Week'] == $input_week)) OR
-                    (($input_weekday == 1) && ($value['Weekday'] == 0 OR 6) &&
-                        ($input_week - $value['Week'] == 1))) &&
-                ($value['Month'] == $input_month))
+                return "It's $key on that date!";
+            } elseif (((($value['Weekday'] == $inputWeekday) && ($value['Week'] == $inputWeek)) ||
+                    (($inputWeekday == 1) && ($value['Weekday'] == 0 || 6) &&
+                        ($inputWeek - $value['Week'] == 1))) &&
+                ($value['Month'] == $inputMonth))
             {
-                return ("It's " . $key . " on that date!");
+                return "It's $key on that date!";
             }
         }
     }
