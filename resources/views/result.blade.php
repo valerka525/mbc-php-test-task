@@ -22,7 +22,7 @@
 </head>
 <body class="antialiased">
 @if(isset($result))
-{{ $result }}
+{{ preg_replace('/[0-9]/', '', $result) }}
 @else
     No holidays on that date!
     @endif
