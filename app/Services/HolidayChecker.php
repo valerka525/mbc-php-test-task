@@ -60,16 +60,5 @@ class HolidayChecker
                 }
             }
         }
-        /*foreach ($holidaysTimeStamps as $key => $value){
-            switch ($inputTimestamp){
-                case $value : return "It's $key on that date!";
-                case (date('w', $value) == 6) && ($inputTimestamp - $value == $oneDayTimestamp*2) &&
-                     (date('w', $inputTimestamp) == 1) :
-                    return "It's day off because of $key falls on Saturday";
-                case (date('w', $value) == 0) && ($inputTimestamp - $value == $oneDayTimestamp) &&
-                    (date('w', $inputTimestamp) == 1) :
-                    return "It's day off because of $key falls on Sunday";
-            }
-        }*/
     }
 }
